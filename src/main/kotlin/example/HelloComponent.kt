@@ -1,7 +1,6 @@
 package example
 
 import com.intellij.openapi.components.ApplicationComponent
-import org.apache.commons.lang.builder.ToStringBuilder
 import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.Toolkit
@@ -10,7 +9,7 @@ import java.awt.event.KeyEvent
 class HelloComponent : ApplicationComponent {
 
     private val keyEvents = mutableListOf<KeyEvent>()
-    private val sentEvents = mutableListOf<KeyEvent>()
+    private val sendingEvents = mutableListOf<KeyEvent>()
 
     override fun initComponent() {
         println("idea-plugin-hold-keys-and-send-together-demo:initComponent")
@@ -22,8 +21,10 @@ class HelloComponent : ApplicationComponent {
 
                             println("--------- ${event.keyChar} : ${event.hashCode()} ---------------")
                             println("keyEvents size: ${keyEvents.size}")
-                            val myEvent = sentEvents.any { it === event }
-                            if (!myEvent) {
+                            val myEvent = sendingEvents.any { it === event }
+                            if (myEvent) {
+                                sendingEvents.remove(event)
+                            } else {
                                 event.consume()
                                 keyEvents.add(createKeyEvent(event))
 
@@ -36,7 +37,7 @@ class HelloComponent : ApplicationComponent {
                                     val todo = keyEvents.take(15)
                                     repeat(15) { keyEvents.removeAt(0) }
 
-                                    sentEvents.addAll(todo)
+                                    sendingEvents.addAll(todo)
 
                                     todo.forEach { event ->
                                         Toolkit.getDefaultToolkit().systemEventQueue.postEvent(event)
